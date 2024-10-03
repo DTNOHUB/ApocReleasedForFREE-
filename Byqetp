@@ -1,0 +1,420 @@
+local XanaxUILib = loadstring(game:HttpGet("https://pastebin.com/raw/XZz3Ytbu"))()
+local UI = XanaxUILib:CreateWindow("PainGui")
+local Local = UI:CreateSection("Local")
+local Kit = UI:CreateSection("Kit")
+
+
+
+
+
+
+local R = game:GetService("Workspace").Remote
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = Game:GetService("RunService")
+local Loot = Lighting.LootDrops
+local Mats = Lighting.Materials
+local Players = game:GetService("Players")
+local client = Players.LocalPlayer
+
+--[ Bypass
+Serial = nil
+GetKey = nil
+local MetaCall = getrawmetatable(getrenv().shared)
+for i, v in pairs(debug.getupvalues(MetaCall.__index)) do
+    if i == 3 then
+        for a, b in pairs(debug.getupvalues(v)) do
+            if a == 6 then
+                Serial = b
+            elseif a == 7 then
+                GetKey = b
+            end
+        end
+    end
+end
+
+function fireserver(Re, ...)
+    Re = R[tostring(Re)]
+    Re:FireServer(Serial({...}, GetKey()))
+end
+--]
+
+SelectedPlayer = nil
+Item = nil
+SpawnedItems = {}
+function SpawnItem(SelectedPlayer, Item, Parent, OF, SP)
+    if SelectedPlayer == nil or Item == nil or GetItemFromString(Item, Parent) == nil then
+        return
+    end
+    Item = GetItemFromString(Item, Parent)
+    if SP == nil then
+        Count()
+    end
+    if SpawnedItems[Item] == nil then
+        SpawnedItems[Item] = {true}
+    else
+        table.insert(SpawnedItems[Item], true)
+    end
+    if Item.Parent ~= Mats then
+        fireserver("ChangeParent", Parent:WaitForChild(tostring(Item)), Mats)
+    end
+    local ItemI = Mats:WaitForChild(tostring(Item))
+    if ItemI.PrimaryPart == nil then
+        ItemI.PrimaryPart = GetPart(ItemI)
+    end
+    pcall(function()
+        R.PlaceMaterial:FireServer(Mats:WaitForChild(tostring(Item)).Name, SelectedPlayer.Character.Torso.Position - ItemI.PrimaryPart.Position - OF)
+    end)
+    spawn(function()
+        wait(2)
+        table.remove(SpawnedItems[Item], 1)
+        if #SpawnedItems[Item] < 1 then
+            fireserver("ChangeParent", Mats:WaitForChild(tostring(Item)), Parent)
+        end
+    end)
+end
+
+function GetItemFromString(Item, Parent)
+    if Parent:FindFirstChild(Item) then
+        return Parent[Item]
+    elseif Mats:FindFirstChild(Item) then
+        return Mats[Item]
+    end
+end
+
+function GetPart(Model)
+    local P = nil
+    for _, v in pairs(Model:GetDescendants()) do
+        if v:IsA("BasePart") and (P == nil or tostring(v) == "Head" or tostring(v) == "Driver") then
+            P = v
+        end
+    end
+    return P
+end
+
+local AA = 0
+MaxAmount = 1500
+TimeToWait = 1
+function Count()
+    AA = AA + 1
+    if AA >= MaxAmount then
+        wait(TimeToWait)
+        AA = 0
+    end
+end
+
+local Vector3Objects = {
+    Vector3.new(2, 6, 9),
+    Vector3.new(2, 1, 4),
+    Vector3.new(2, 2, 4),
+    Vector3.new(4, 4, 4),
+    Vector3.new(2, 2, 12),
+    Vector3.new(8, .4, 2),
+    Vector3.new(2, 8, 2)
+}
+
+KitsList = {
+    ["Blood"] = {{"BloodBag", 50}},
+    ["Pk"] = {{"Painkillers", 50}},
+    ["Food"] = {{"MRE", 25}, {"WaterBottle", 25}},
+    ["Gadgets"] = {{"Painkillers", 50}},
+    ["Car"] = {{"ReinforcedWheel", 8}, {"BallisticGlass", 1}, {"JerryCan", 4}, {"EngineParts", 1}, {"FuelTank", 1}, {"ArmorPlates", 1}, {"ScrapMetal", 1}},
+    ["Base"] = {{"Material1", 5}, {"Material2", 5}, {"Material3", 5}, {"Material4", 5}, {"Material5", 5}, {"Material6", 5}, {"Material7", 5}, {"Floodlight", 5}, {"LargeCrate", 5}, {"Entrencher", 1}},
+    ["M14=1"] = {"MilitaryPackBlack", "M14", {"M14Ammo50", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["FAL=1"] = {"MilitaryPackBlack", "FAL", {"M14Ammo50", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["Mk17=1"] = {"MilitaryPackBlack", "Mk 17", {"M14Ammo50", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["HK21=1"] = {"MilitaryPackBlack", "HK21", {"M14Ammo50", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["HK417=1"] = {"MilitaryPackBlack", "HK417", {"M14Ammo50", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["G3=1"] = {"MilitaryPackBlack", "G3", {"M14Ammo50", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["Pat=1"] = {"MilitaryPackBlack", "Patriot", {"STANAGAmmo100", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor556"},
+    ["G36k=1"] = {"MilitaryPackBlack", "G36k", {"STANAGAmmo100", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor556"},
+    ["M4A1=1"] = {"MilitaryPackBlack", "M4A1", {"STANAGAmmo100", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor556"},
+    ["SCAR=1"] = {"MilitaryPackBlack", "SCAR-L", {"STANAGAmmo100", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor556"},
+    ["Ak12=1"] = {"MilitaryPackBlack", "AK-12", {"AK47Ammo75", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["AK104=1"] = {"MilitaryPackBlack", "AK-104", {"AK47Ammo75", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    ["OTs-14=1"] = {"MilitaryPackBlack", "OTs-14", {"AK47Ammo75", 12}, {"BloodBag", 7}, "Painkillers", "ACOG", "Grip", "Suppressor762"},
+    
+}
+
+Local:CreateLabel("Made by Pain.#1497")
+Local:CreateButton("Destroy UI", function()
+	XanaxUILib.functions:DestroyGUI()
+end)
+
+
+local CarKit = Kit:CreateButton("CarKit", function()
+	for i = 1, #KitsList["Car"] do
+        local Amount = 1
+        local Item = KitsList["Car"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+            Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned CarKit.")
+end)
+
+local M14Kit = Kit:CreateButton("M14Kit", function()
+	for i = 1, #KitsList["M14=1"] do
+        local Amount = 1
+        local Item = KitsList["M14=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+            Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned M14Kit.")
+end)
+
+local M14Kit = Kit:CreateButton("FalKit", function()
+	for i = 1, #KitsList["FAL=1"] do
+        local Amount = 1
+        local Item = KitsList["FAL=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+            Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned FalKit.")
+end)
+
+local AK104Kit = Kit:CreateButton("OTs-14 Kit", function()
+    for i = 1, #KitsList["OTs-14=1"] do
+        local Amount = 1
+        local Item = KitsList["OTs-14=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned OTs-14 Kit.")
+end)
+
+local AK104Kit = Kit:CreateButton( "BaseKit", function()
+    for i = 1, #KitsList["Base"] do
+        local Amount = 1
+        local Item = KitsList["Base"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned Base Kit.")
+end)
+
+local Mk17Kit = Kit:CreateButton("Mk17 Kit", function()
+    for i = 1, #KitsList["Mk17=1"] do
+        local Amount = 1
+        local Item = KitsList["Mk17=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned Mk17 CQC Kit.")
+end)
+
+local HK21Kit = Kit:CreateButton("HK21 Kit", function()
+    for i = 1, #KitsList["HK21=1"] do
+        local Amount = 1
+        local Item = KitsList["HK21=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned HK21 CQC Kit.")
+end)
+
+local HK417Kit = Kit:CreateButton(Text  "HK417 Kit", function()
+    for i = 1, #KitsList["HK21=1"] do
+        local Amount = 1
+        local Item = KitsList["HK21=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned HK417 CQC Kit.")
+end)
+
+local G3Kit = Kit:CreateButton( "G3 Kit", function()
+    for i = 1, #KitsList["G3=1"] do
+        local Amount = 1
+        local Item = KitsList["G3=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned G3 CQC Kit.")
+end)
+
+local PatKit = Kit:CreateButton( "Pat Kit", function()
+    for i = 1, #KitsList["Pat=1"] do
+        local Amount = 1
+        local Item = KitsList["Pat=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned Pat CQC Kit.")
+end)
+
+local G36kKit = Kit:CreateButton( "G36k Kit",  function()
+    for i = 1, #KitsList["G36k=1"] do
+        local Amount = 1
+        local Item = KitsList["G36k=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned G36k CQC Kit.")
+end)
+
+local M4A1Kit = Kit:CreateButton( "M4A1 Kit", function()
+    for i = 1, #KitsList["M4A1=1"] do
+        local Amount = 1
+        local Item = KitsList["M4A1=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned M4A1 CQC Kit.")
+end)
+
+local SCARKit = Kit:CreateButton( "SCAR Kit", function()
+    for i = 1, #KitsList["SCAR=1"] do
+        local Amount = 1
+        local Item = KitsList["SCAR=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned SCAR Kit.")
+end)
+
+local Ak12Kit = Kit:CreateButton( "Ak12 Kit ",  function()
+    for i = 1, #KitsList["Ak12=1"] do
+        local Amount = 1
+        local Item = KitsList["Ak12=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned Ak12 Kit.")
+end)
+
+local AK104Kit = Kit:CreateButton( "AK104 Kit", function()
+    for i = 1, #KitsList["AK104=1"] do
+        local Amount = 1
+        local Item = KitsList["AK104=1"][i]
+        if typeof(Item) == "table" then
+            Amount = Item[2]
+            Item = Item[1]
+        end
+        for O = 1, Amount or 1 do
+        Count()
+            spawn(function()
+                SpawnItem(client, Item, Loot, Vector3.new(math.random(-5, 5), 2.5, math.random(-5, 5)))
+            end)
+        end
+    end
+    warn("Successfully Spawned AK104 CQC Kit.")
+end)
+
+--]
+
+print("ok")
+
+
