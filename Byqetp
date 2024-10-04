@@ -1,5 +1,5 @@
 local XanaxUILib = loadstring(game:HttpGet("https://pastebin.com/raw/XZz3Ytbu"))()
-local UI = XanaxUILib:CreateWindow("PainGui")
+local UI = XanaxUILib:CreateWindow("!qept's Apoc SpawnScript!")
 local Local = UI:CreateSection("Local")
 local Kit = UI:CreateSection("Kit")
 
@@ -137,7 +137,7 @@ KitsList = {
     
 }
 
-Local:CreateLabel("Made by Pain.#1497")
+Local:CreateLabel("Made by qetp on discord!")
 Local:CreateButton("Destroy UI", function()
 	XanaxUILib.functions:DestroyGUI()
 end)
